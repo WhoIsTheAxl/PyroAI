@@ -13,8 +13,10 @@ class TicTacToeEnvironment(Environment):
         self._current_player = None
 
     def reset(self, task: TaskDefinition | None = None) -> Observation:
-        """Start a fresh match and activate the supplied or default task."""
-        if task is None: task = TaskDefinition(name="Play Tic-Tac-Toe", goal="Win the match")
+        """Start a fresh match, cancelling any unfinished previous task."""
+        if self.task is not None and self.task.status in (TaskStatus.PENDING, TaskStatus.ACTIVE):
+            self.task.cancel()
+        if task is None: task = TaskDefinition(name="Play Tic-Tac-Toe", goal="Complete the match")
         self.create_task(task)
         self._board = [[None for _ in range(3)] for _ in range(3)]
         self._current_player = "X"
