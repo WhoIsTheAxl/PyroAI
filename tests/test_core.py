@@ -62,5 +62,12 @@ class TicTacToeTests(unittest.TestCase):
         result = self.move(3, 0)
         self.assertEqual(result.feedback.status, FeedbackStatus.REJECTED)
 
+    def test_reset_cancels_unfinished_task(self):
+        previous = self.env.task
+        self.move(0, 0)
+        self.env.reset()
+        self.assertEqual(previous.status, TaskStatus.CANCELLED)
+        self.assertEqual(self.env.task.status, TaskStatus.ACTIVE)
+
 if __name__ == '__main__':
     unittest.main()
