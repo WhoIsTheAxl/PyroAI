@@ -1,61 +1,31 @@
 # PyroAI
 
-**PyroAI** is a fast, lightweight, and modular Python library for training specialized AI agents.
+**PyroAI** is a lightweight, modular Python library for building and training specialized agents for games, puzzles, simulations, and optimization tasks.
 
-It is designed for **puzzle solving, games, simulations, and task-oriented intelligence**—not large language models or generative AI.
+> **Status:** Early development. The core data contracts and a playable Tic-Tac-Toe environment are being implemented. Agent algorithms, trainers, and numerical backends are planned next.
 
-PyroAI aims to make it straightforward to create an environment, define what an agent can observe, give it a task, and train it to solve that task.
+## Principles
 
-> **Project status:** Early development. The package structure and architecture are being established; public APIs and algorithms are not yet stable.
-
-## Design goals
-
-- **Lightweight:** Keep the core small and avoid unnecessary dependencies.
-- **Accessible:** Make common training workflows approachable.
-- **Extensible:** Support custom environments, tasks, actions, algorithms, and backends.
-- **Portable:** Treat CPU-only systems and constrained devices, including Termux, as important targets.
-- **Backend-flexible:** Use lightweight numerical / neural-network backends where needed; PyTorch is not a required dependency.
-- **Algorithm-flexible:** Support approaches that do not require neural networks, as well as neural-network-based methods.
+- Small standard-library-first core.
+- CPU-first and portability-conscious, including constrained environments such as Termux.
+- No mandatory PyTorch dependency.
+- Tasks describe objectives; actions describe operations.
+- Environments own their state and execute actions.
+- Algorithms that do not need neural networks should not need a tensor backend.
 
 ## Core concepts
 
-- **Environment:** An interactive sandbox or world. It controls its internal state and exposes observations and available capabilities to an agent.
-- **Observation:** The information an agent is allowed to perceive about an environment.
-- **Task:** An objective the agent is asked to accomplish. A task can involve multiple actions.
-- **Action:** An operation the agent performs within an environment.
-- **Feedback:** The result of an action or progress toward a task, potentially including rewards.
-- **Agent:** The decision-making system that observes an environment and chooses actions.
-- **Algorithm:** The method used to make an agent learn, search, plan, or improve.
-- **Trainer:** The component coordinating training and evaluation.
+- **Environment:** Owns simulation state, manages task instances, validates and executes actions, and produces observations.
+- **TaskDefinition:** Reusable description of an objective.
+- **TaskInstance:** One attempt at a task, managed by an environment.
+- **Action:** Immutable descriptor of an intended operation.
+- **Observation:** Deeply read-only snapshot of agent-visible information.
+- **Feedback:** Result of processing an action; reward is optional.
+- **StepResult:** Feedback and the resulting observation in one response.
+- **Experience:** Standardized record of one interaction transition.
+- **Agent / Algorithm / Model / Backend:** Planned modular decision-making and computation layers.
 
-Tasks and actions are separate concepts: a task describes **what should be accomplished**, while actions describe **what the agent can do**.
-
-## Intended applications
-
-- Board games such as Tic-Tac-Toe
-- Puzzle solving, including Rubik's Cubes
-- Maze navigation and pathfinding
-- Simulations and interactive tasks
-- Optimization and decision-making problems
-
-## Planned architecture
-
-```text
-src/pyroai/
-├── core/          # Shared interfaces and fundamental types
-├── environments/  # Native environments and external adapters
-├── algorithms/    # Learning, search, and optimization methods
-├── models/        # Agent model implementations
-├── backends/      # Lightweight numerical / neural computation backends
-├── training/      # Training, evaluation, and metrics
-└── storage/       # Checkpoints and persistence
-```
-
-This layout is an initial scaffold and may evolve as the design is validated.
-
-## Installation
-
-PyroAI is not published on PyPI yet. For development, clone the repository and install it in editable mode:
+## Install for development
 
 ```bash
 git clone https://github.com/WhoIsTheAxl/PyroAI.git
@@ -63,18 +33,39 @@ cd PyroAI
 python -m pip install -e .
 ```
 
-The initial scaffold has no mandatory third-party runtime dependencies.
+PyroAI is not published on PyPI yet. The core has no mandatory third-party runtime dependencies.
 
-## Development
-
-Run the test suite with:
+## Run tests
 
 ```bash
-python -m unittest discover -s tests
+python -m unittest discover -s tests -v
+```
+
+## Try the Tic-Tac-Toe environment
+
+```python
+from pyroai.core import Action, TaskDefinition
+from pyroai.environments import TicTacToeEnvironment
+
+env = TicTacToeEnvironment()
+observation = env.reset(TaskDefinition(name="Play a match"))
+result = env.execute(Action("place", {"row": 0, "column": 0}))
+print(result.feedback.status, result.observation.data["board"])
+```
+
+## Project layout
+
+```text
+src/pyroai/
+├── core/          # Shared immutable data types and task lifecycle
+├── environments/  # Environment interface and native environments
+├── algorithms/    # Learning, search, and optimization (planned)
+├── models/        # Reusable models (planned)
+├── backends/      # Optional compute backends (planned)
+├── training/      # Training and evaluation (planned)
+└── storage/       # Persistence and checkpoints (planned)
 ```
 
 ## License
 
-PyroAI is licensed under the [Apache License 2.0](LICENSE).
-
-Copyright © 2026 Axl. See [NOTICE](NOTICE) for project attribution.
+Apache-2.0. Copyright 2026 Axl. See [LICENSE](LICENSE) and [NOTICE](NOTICE).

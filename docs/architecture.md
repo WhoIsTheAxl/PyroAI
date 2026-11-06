@@ -1,44 +1,31 @@
-# Architecture Notes
+# Architecture
 
-This document records the current architectural direction. It is a design guide, not a promise that every proposed feature is implemented.
+This document describes the current API direction. Implemented components are usable; planned components are explicitly marked.
 
-## Environment
+## Environment and tasks
 
-An environment is an interactive sandbox that contains or simulates a world. It owns its internal state and decides what information and capabilities are exposed to an agent.
+An Environment owns internal state and manages TaskInstances. A TaskDefinition is a reusable objective specification; each TaskInstance represents one attempt. The definition describes the goal, while the environment evaluates it against its own state.
 
-An environment should be able to provide:
-- Observations: the information visible to the agent.
-- Tasks: objectives that can be assigned in that environment.
-- Actions: operations an agent may perform.
-- Feedback: results from actions and task progress.
-- Episode / task completion signals.
+## Actions
 
-The internal environment state does not have to be fully observable. An environment may expose only a partial observation.
+Action is an immutable data descriptor, not executable behavior. It performs structural validation. The environment performs contextual validation and execution.
 
-## Task and action are distinct
+## Observations
 
-A **task** describes the objective. An **action** is an operation the agent performs while pursuing that objective. A task may require a sequence of actions and may expose a set of actions that are valid in its current context.
+Observation is a read-only snapshot of information exposed to an agent, not a reference to internal environment state. Nested mappings and sequences are frozen. `mutable_copy()` returns detached data for preprocessing.
 
-For example, a Tic-Tac-Toe task could be "win the match"; an action could be "place a mark at row 1, column 2".
+## Feedback and StepResult
 
-The environment remains responsible for validating and applying actions.
+Feedback reports whether an action was accepted and its outcome. `SUCCESS`, `REJECTED`, and `ERROR` are distinct. Reward is optional. StepResult bundles Feedback with the post-step Observation and task lifecycle information.
 
-## Agent and algorithm
+## Experience
 
-An **agent** interacts with an environment: it receives observations and selects actions.
+Experience stores the previous observation, action, feedback, next observation, and task state. Algorithms may use this common record or derive algorithm-specific representations.
 
-An **algorithm** determines how the agent selects actions or improves its behavior. Algorithms should depend on stable PyroAI interfaces rather than a specific environment implementation.
+## Agent, Algorithm, Model, Backend (planned)
 
-Not every algorithm requires a neural network. Search, tabular learning, and optimization methods should not be forced to initialize a tensor backend.
+Agents may implement custom decision logic or delegate to an optional Algorithm. Models are independent components whose lifecycle may be managed by an Agent or Algorithm. Backends provide optional numerical computation. Search and tabular algorithms must not be forced to use neural-network backends.
 
-## Training
+## Training and integrations (planned)
 
-The training subsystem should coordinate interaction, learning updates, evaluation, metrics, and checkpointing without owning environment-specific rules.
-
-## Backends
-
-Numerical and neural-network computation should be behind a backend boundary. PyTorch is not a required dependency. Lightweight backends and a CPU-friendly path are priorities; actual backend choices will be evaluated for platform support, installation size, and performance.
-
-## Integrations
-
-PyroAI should provide native environments while also allowing adapters for external environment APIs. Integrations should translate external observations, actions, and episode results into PyroAI's abstractions without requiring users to rewrite their environments.
+Training coordinates interaction, updates, evaluation, metrics, and checkpoints. Adapters translate external environment APIs into PyroAI's contracts.
